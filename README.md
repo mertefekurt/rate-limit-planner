@@ -1,71 +1,45 @@
-# rate-limit-planner
+# Rate Limit Planner
 
-`rate-limit-planner` is a small local CLI that review API workload notes for missing rate limits, retries, and backoff.
+![Rate Limit Planner cover](assets/readme-cover.svg)
 
-## Why it is useful
+> Review API workload notes for missing rate limits, retries, and backoff
 
-Automation jobs and LLM apps often fail under vendor limits. This CLI flags workload plans without backoff and concurrency controls.
+![stack](https://img.shields.io/badge/stack-Python-b45309?style=flat-square) ![python](https://img.shields.io/badge/python-3.11-be185d?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-4b5563?style=flat-square) ![ci](https://img.shields.io/badge/ci-GitHub%20Actions-2563eb?style=flat-square)
 
-## Key features
+## At a glance
 
-- reads text, JSON, JSONL, or CSV inputs
-- returns Markdown or JSON reports
-- supports severity-based CI exit codes
-- keeps all checks deterministic and offline
-- includes focused rules for this project:
-- `unbounded-concurrency`: concurrency is unbounded
-- `retry-forever`: retry policy is unbounded
-- `missing-backoff`: backoff is missing
+| Area | Detail |
+| --- | --- |
+| Focus | rate limits |
+| Command | `rate-limit-planner` |
+| Formats | text, JSON, JSONL, CSV |
+| Output | Markdown table or JSON |
 
-## Installation
+## What it checks
+
+| Rule | Severity | What it catches |
+| --- | --- | --- |
+| `unbounded-concurrency` | high | concurrency is unbounded |
+| `retry-forever` | medium | retry policy is unbounded |
+| `missing-backoff` | low | backoff is missing |
+
+## Try it locally
 
 ```bash
 python -m pip install -e ".[dev]"
-```
-
-## Usage
-
-```bash
 rate-limit-planner examples/sample.txt
-rate-limit-planner examples/sample.txt --json
-rate-limit-planner path/to/input.txt --fail-on medium --out report.md
-python -m rate_limit_planner --help
+rate-limit-planner examples/sample.txt --json --fail-on medium
 ```
 
-Example input:
+## Notes from the code
 
-```text
-send 10000 requests concurrency: unlimited retry forever no backoff
-```
+`rules.py` keeps the project policy explicit, while `core.py` handles parsing and report rendering. The CLI stays thin on purpose so the checks are easy to test.
 
-## CLI options
-
-```text
-rate-limit-planner INPUT [--format auto|text|jsonl|csv|json] [--json]
-             [--fail-on low|medium|high] [--out PATH]
-```
-
-`INPUT` is any API workload plan or integration notes. The tool exits with code `2` when findings meet the selected
-threshold, which makes it easy to use in GitHub Actions or release checks.
-
-## Workflow
-
-```mermaid
-flowchart LR
-    A[input file] --> B[format reader]
-    B --> C[project-specific rules]
-    C --> D[risk score]
-    D --> E[Markdown or JSON report]
-```
-
-## Tests
+## Verify
 
 ```bash
+python -m pip install -e ".[dev]"
 ruff check .
 pytest
 python -m rate_limit_planner --help
 ```
-
-## License
-
-MIT
